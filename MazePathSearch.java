@@ -19,7 +19,7 @@ class MazePathSearch{
 
 
 	public void Load_Maze(){
-		FileRead mazefile = new FileRead("smallMaze.lay.txt");
+		FileRead mazefile = new FileRead("tinyMaze.lay.txt");
 		Maze = new Square[mazefile.content.size()][];
 		for (int i=0; i<mazefile.content.size(); i++){
 			Maze[i] = new Square[mazefile.content.get(i).length()];
@@ -54,7 +54,8 @@ class MazePathSearch{
 							//openList.add(Maze[i][j]);
 							//System.out.println("------------> " + Maze[i][j].parent.xPos + ", " + Maze[i][j].parent.yPos);
 							Maze[i][j].g = computeG(Maze[i][j]);
-							adjacent.add(new Square(Maze[i][j]));
+							if (!diagonal(Maze[i][j]))
+								adjacent.add(new Square(Maze[i][j]));
 						}
 					}
 				}
@@ -94,12 +95,11 @@ class MazePathSearch{
 			}
 		}
 		System.out.println("finding nemo");
-		System.out.println("x: "+min.xPos +  "y: "+min.yPos);
+		System.out.println("x: "+min.xPos +  " y: "+min.yPos);
 		return min;
 	}
 
 	public void search(){
-		System.out.println("GOOOOOOOOOOOOAAAALL: " + goal.xPos + ", " + goal.yPos);
 		boolean goal_found = false;
 		start.h = ManhattanDistance(start);
 		start.f = start.g + start.h;
@@ -113,6 +113,9 @@ class MazePathSearch{
 			System.out.println("Current Square: " + q.xPos + ", " + q.yPos + "; g: " + q.g + "; h: " + q.h + "; f: " + q.f);
 			closedList.add(new Square(q));
 			if (q.samePosition(goal)){
+					//if (exists(q) == null)
+					//naa'y times na if equal ang min.f ug ang square.f, if alphabetical, di jud sya mao ang path, so mubalik siya??? haha
+					parentList.add(new Square(q));
 					System.out.println("-------------------------------------------------->>>>>>>>>>>> ");
 					goal_found = true;
 					break;
@@ -123,7 +126,7 @@ class MazePathSearch{
 				if (tmp == null){
 					//successor.g = computeG(successor);
 					//if (!diagonal(successor)) //if successor is diagonal; code
-						successor.h = ManhattanDistance(successor);
+						successor.h = computeF(successor);
 					//else
 					//	successor.h = StraightLineDistance(successor);
 					successor.f = successor.g + successor.h;
@@ -132,7 +135,7 @@ class MazePathSearch{
 				}
 				else{
 					//successor.g = computeG(successor);
-					successor.h = ManhattanDistance(successor);
+					successor.h = computeF(successor);
 					successor.f = successor.g + successor.h;
 					//System.out.println("======================== " + tmp.g + ">" + successor.g + " " + tmp.xPos + ", " + tmp.yPos);
 					if (tmp.g > successor.g){
@@ -152,7 +155,7 @@ class MazePathSearch{
 					}
 					openList.remove(tmp);
 					openList.add(new Square(successor));
-						System.out.println("last nga g add: " + openList.get(openList.size()-1).f);
+					//	System.out.println("last nga g add: " + openList.get(openList.size()-1).f);
 				}
 				//System.out.println("----->>> " + "x: " + q.xPos + ", y: " + q.yPos + " ---->>> " + openList.size());
 				//System.out.println(goal.xPos + ", " + goal.yPos);
@@ -195,6 +198,13 @@ class MazePathSearch{
 			return square.parent.g + SCOST;
 	}
 
+	public int computeF(Square square){
+		if (diagonal(square))
+			return StraightLineDistance(square);
+		else
+			return ManhattanDistance(square);
+	}
+
 	public Square exists(Square square){
 		for (Square sq : openList){
 			if (sq.samePosition(square))
@@ -235,14 +245,15 @@ class MazePathSearch{
 		tmp = search.parentList.get(search.parentList.size() - 1);
 		for (int i= search.parentList.size() - 1; i >= 0; i--){
 			if (tmp.parent!=null){
-			path.add(tmp.parent);
-			tmp = tmp.parent;
-		}
+				path.add(tmp.parent);
+				tmp = tmp.parent;
+			}
 		}
 		for (Square sq: path){
 			search.Maze[sq.yPos][sq.xPos].state = '.';
 		}
 		search.Display_Maze();
+		System.out.println(search.Maze.length-1);
 	}
 }
 
